@@ -5,8 +5,18 @@ import Home from "./src/screens/Home";
 import { SWRConfig } from "swr";
 import axios from "axios";
 import { SUPABASE_API_KEY } from "@env";
+import WorkoutScreen from "./src/screens/WorkoutScreen";
+import { Workout, WorkoutExercise } from "./src/types/types";
+import { ExerciseProvider } from "./src/context/ExerciseContext";
+import WorkoutExerciseScreen from "./src/screens/WorkoutExerciseScreen";
 
-const Stack = createNativeStackNavigator();
+export type StackParams = {
+  Home: undefined;
+  Workout: { workout: Workout };
+  WorkoutExercise: { workoutExercise: WorkoutExercise };
+};
+
+const Stack = createNativeStackNavigator<StackParams>();
 
 export default function App() {
   return (
@@ -24,12 +34,19 @@ export default function App() {
             .then((res) => res.data),
       }}
     >
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={Home} />
-        </Stack.Navigator>
-        <StatusBar style="auto" />
-      </NavigationContainer>
+      <ExerciseProvider value={{}}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Workout" component={WorkoutScreen} />
+            <Stack.Screen
+              name="WorkoutExercise"
+              component={WorkoutExerciseScreen}
+            />
+          </Stack.Navigator>
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </ExerciseProvider>
     </SWRConfig>
   );
 }
