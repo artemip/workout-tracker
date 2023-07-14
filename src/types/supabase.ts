@@ -3,7 +3,7 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json }
+  | { [key: string]: Json | undefined }
   | Json[]
 
 export interface Database {
@@ -11,113 +11,146 @@ export interface Database {
     Tables: {
       exercise_logs: {
         Row: {
-          id: number
           created_at: string | null
-          workout_exercise_id: number
-          set_number: number
+          exercise_id: number
+          id: number
           reps_completed: number
+          set_number: number
           weight_used: number
+          workout_exercise_id: number
         }
         Insert: {
-          id?: number
           created_at?: string | null
-          workout_exercise_id: number
-          set_number: number
+          exercise_id: number
+          id?: number
           reps_completed: number
+          set_number: number
           weight_used: number
+          workout_exercise_id: number
         }
         Update: {
-          id?: number
           created_at?: string | null
-          workout_exercise_id?: number
-          set_number?: number
+          exercise_id?: number
+          id?: number
           reps_completed?: number
+          set_number?: number
           weight_used?: number
+          workout_exercise_id?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_logs_workout_exercise_id_fkey"
+            columns: ["workout_exercise_id"]
+            referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       exercises: {
         Row: {
-          id: number
           created_at: string | null
+          id: number
           name: string
           type: string | null
           url: string | null
         }
         Insert: {
-          id?: number
           created_at?: string | null
+          id?: number
           name: string
           type?: string | null
           url?: string | null
         }
         Update: {
-          id?: number
           created_at?: string | null
+          id?: number
           name?: string
           type?: string | null
           url?: string | null
         }
+        Relationships: []
       }
       workout_exercises: {
         Row: {
-          id: number
           created_at: string | null
-          exercise_id: number
-          workout_id: number
-          order: number
-          num_sets: number
-          num_reps_per_set: number
-          weight: number
-          rest_time_seconds: number
           end_with_drop_set: boolean
+          exercise_id: number
+          id: number
+          num_reps_per_set: number
+          num_sets: number
+          order: number
+          rest_time_seconds: number
+          weight: number
+          workout_id: number
         }
         Insert: {
-          id?: number
           created_at?: string | null
-          exercise_id: number
-          workout_id: number
-          order: number
-          num_sets: number
-          num_reps_per_set: number
-          weight: number
-          rest_time_seconds: number
           end_with_drop_set?: boolean
+          exercise_id: number
+          id?: number
+          num_reps_per_set: number
+          num_sets: number
+          order: number
+          rest_time_seconds: number
+          weight: number
+          workout_id: number
         }
         Update: {
-          id?: number
           created_at?: string | null
-          exercise_id?: number
-          workout_id?: number
-          order?: number
-          num_sets?: number
-          num_reps_per_set?: number
-          weight?: number
-          rest_time_seconds?: number
           end_with_drop_set?: boolean
+          exercise_id?: number
+          id?: number
+          num_reps_per_set?: number
+          num_sets?: number
+          order?: number
+          rest_time_seconds?: number
+          weight?: number
+          workout_id?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       workouts: {
         Row: {
-          id: number
           created_at: string | null
-          order: number
-          name: string
+          id: number
           meso_cycle: number
+          name: string
+          order: number
         }
         Insert: {
-          id?: number
           created_at?: string | null
-          order: number
-          name: string
+          id?: number
           meso_cycle: number
+          name: string
+          order: number
         }
         Update: {
-          id?: number
           created_at?: string | null
-          order?: number
-          name?: string
+          id?: number
           meso_cycle?: number
+          name?: string
+          order?: number
         }
+        Relationships: []
       }
     }
     Views: {
@@ -127,6 +160,9 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
       [_ in never]: never
     }
   }

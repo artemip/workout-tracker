@@ -1,0 +1,47 @@
+{
+  "cli": {
+    "version": ">= 3.8.1"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "buildConfiguration": "Debug",
+        "resourceClass": "m-medium",
+        "simulator": true
+      },
+      "env": {
+        "SUPABASE_DB_PASSWORD": "KZBTK8xCAvHpyAas",
+        "SUPABASE_PROJECT_HOST": "sdiwsniatofmjtssguiw.supabase.co",
+        "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkaXdzbmlhdG9mbWp0c3NndWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc2ODgzNDgsImV4cCI6MTk4MzI2NDM0OH0.Ca6zyeLxQcZBC1ymi6iHuIUaqBOHcXu-BZYWV7JYnQ4"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "env": {
+        "SUPABASE_DB_PASSWORD": "KZBTK8xCAvHpyAas",
+        "SUPABASE_PROJECT_HOST": "sdiwsniatofmjtssguiw.supabase.co",
+        "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkaXdzbmlhdG9mbWp0c3NndWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc2ODgzNDgsImV4cCI6MTk4MzI2NDM0OH0.Ca6zyeLxQcZBC1ymi6iHuIUaqBOHcXu-BZYWV7JYnQ4"
+      }
+    },
+    "production": {
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "env": {
+        "SUPABASE_DB_PASSWORD": "KZBTK8xCAvHpyAas",
+        "SUPABASE_PROJECT_HOST": "sdiwsniatofmjtssguiw.supabase.co",
+        "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkaXdzbmlhdG9mbWp0c3NndWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc2ODgzNDgsImV4cCI6MTk4MzI2NDM0OH0.Ca6zyeLxQcZBC1ymi6iHuIUaqBOHcXu-BZYWV7JYnQ4"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

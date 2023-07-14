@@ -11,6 +11,4 @@ export interface WorkoutExercise extends DBWorkoutExercise {
 }
 
 type DBExerciseLog = Database["public"]["Tables"]["exercise_logs"]["Insert"];
-export interface ExerciseLog extends DBExerciseLog {
-  workout_exercise: WorkoutExercise;
-}
+export interface ExerciseLog extends DBExerciseLog {}

@@ -1,5 +1,14 @@
-import React, { useMemo } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import colors from "tailwindcss/colors";
 import useSWR from "swr";
 import { Urls } from "../api/urls";
 import {
@@ -11,6 +20,7 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParams } from "../../App";
 import Row from "../components/Row";
+import { useWorkoutExercises } from "../context/WorkoutExerciseContext";
 
 type Props = NativeStackScreenProps<StackParams, "Home">;
 
@@ -22,6 +32,8 @@ export default function Home({ navigation }: Props) {
   const { data: exerciseLogs, error: errorExerciseLogs } = useSWR<
     ExerciseLog[]
   >(Urls.EXERCISE_LOGS);
+
+  const isLoading = !workouts || !exerciseLogs;
 
   const workoutsByCycle = useMemo(() => {
     return (
@@ -36,6 +48,8 @@ export default function Home({ navigation }: Props) {
     );
   }, [workouts]);
 
+  const workoutExercises = useWorkoutExercises();
+
   const sortedLogs = useMemo(() => {
     return exerciseLogs?.sort((a, b) => {
       return (
@@ -48,8 +62,18 @@ export default function Home({ navigation }: Props) {
     navigation.navigate("Workout", { workout });
   }
 
+  useEffect(() => {
+    if (errorWorkouts || errorExerciseLogs) {
+      Alert.alert(
+        "Error",
+        errorWorkouts?.message ?? errorExerciseLogs?.message
+      );
+    }
+  }, [errorWorkouts, errorExerciseLogs]);
+
   return (
     <ScrollView className="flex-1 bg-slate-50 gap-8 p-4">
+      {isLoading && <ActivityIndicator size="large" color={colors.blue[400]} />}
       {Object.keys(workoutsByCycle).map((cycle) => {
         return (
           <View key={cycle}>
@@ -58,7 +82,9 @@ export default function Home({ navigation }: Props) {
             </View>
             {workoutsByCycle[cycle].map((workout, idx) => {
               const lastLog = sortedLogs?.find(
-                (e) => e.workout_exercise.workout_id === workout.id
+                (e) =>
+                  workoutExercises[e.workout_exercise_id].workout_id ===
+                  workout.id
               );
               return (
                 <Row

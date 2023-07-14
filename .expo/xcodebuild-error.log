@@ -1,0 +1,26 @@
+2023-06-25 15:53:52.675 xcodebuild[60023:3971499]  DVTPortal: Service '<DVTPortalViewDeveloperService: 0x600001a89e00; action='viewDeveloper'>' encountered an unexpected result code from the portal ('1100')
+2023-06-25 15:53:52.675 xcodebuild[60023:3971499]  DVTPortal: Error:
+Error Domain=DVTPortalServiceErrorDomain Code=1100 "Your session has expired. Please log in." UserInfo={payload={
+    creationTimestamp = "2023-06-25T22:53:52Z";
+    httpCode = 200;
+    protocolVersion = QH65B2;
+    requestUrl = "https://developerservices2.apple.com/services/QH65B2/viewDeveloper.action";
+    responseId = "544f40c9-ec9c-46f2-be03-fddbbaaff5f9";
+    resultCode = 1100;
+    resultString = "Your session has expired. Please log in.";
+    userLocale = "en_US";
+    userString = "Your session has expired. Please log in.";
+}, NSLocalizedDescription=Your session has expired. Please log in.}
+2023-06-25 15:53:52.863 xcodebuild[60023:3971499]  DVTPortal: Service '<DVTPortalViewDeveloperService: 0x600001b89300; action='viewDeveloper'>' encountered an unexpected result code from the portal ('1100')
+2023-06-25 15:53:52.865 xcodebuild[60023:3971499]  DVTPortal: Error:
+Error Domain=DVTPortalServiceErrorDomain Code=1100 "Your session has expired. Please log in." UserInfo={payload={
+    creationTimestamp = "2023-06-25T22:53:52Z";
+    httpCode = 200;
+    protocolVersion = QH65B2;
+    requestUrl = "https://developerservices2.apple.com/services/QH65B2/viewDeveloper.action";
+    responseId = "c732d6f8-07e1-4507-b68a-0d918df097dd";
+    resultCode = 1100;
+    resultString = "Your session has expired. Please log in.";
+    userLocale = "en_US";
+    userString = "Your session has expired. Please log in.";
+}, NSLocalizedDescription=Your session has expired. Please log in.}
