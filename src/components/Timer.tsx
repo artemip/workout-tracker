@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Vibration, Platform } from "react-native";
 
@@ -13,30 +13,29 @@ const formatTime = (seconds: number) => {
 };
 
 function vibrate() {
-  const interval = setInterval(
-    () => Vibration.vibrate([0, 500, 200, 500]),
-    1000
-  );
+  const interval = setInterval(() => {
+    Vibration.vibrate([0, 500, 200, 500]);
+    console.debug("Vibrating...");
+  }, 1000);
   setTimeout(() => clearInterval(interval), 5000);
 }
 
 export default function Timer({ timeSeconds }: Props) {
   const [seconds, setSeconds] = useState(timeSeconds);
   const [isActive, setIsActive] = useState(false);
+  const intervalRef = useRef<number>(0);
 
   useEffect(() => {
-    let intervalId: number = 0;
-
     if (isActive && seconds > 0) {
-      intervalId = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setSeconds((prevSeconds) => prevSeconds - 1);
       }, 1000);
-    } else if (intervalId) {
-      intervalId && clearInterval(intervalId);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
       vibrate();
     }
 
-    return () => clearInterval(intervalId);
+    return () => clearInterval(intervalRef.current);
   }, [isActive, seconds]);
 
   useEffect(() => {
