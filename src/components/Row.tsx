@@ -7,7 +7,7 @@ interface Props extends TouchableOpacityProps {
 
 export default function Row({ children, icon, ...props }: Props) {
   return (
-    <View className="border-b-2 border-slate-200 ">
+    <View className="border-b-2 border-slate-200">
       <TouchableOpacity
         className="flex-row py-4 pr-2 justify-between items-center"
         {...props}

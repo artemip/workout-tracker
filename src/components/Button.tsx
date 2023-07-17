@@ -18,22 +18,20 @@ export default function Button({
     variant === "secondary" || variant === "danger"
       ? ""
       : variant === "success"
-      ? `bg-green-${colorWeight}`
-      : `bg-blue-${colorWeight}`;
+      ? `bg-teal-${colorWeight}`
+      : `bg-sky-${colorWeight}`;
 
   const textColor =
     variant === "secondary"
-      ? "text-blue-500"
+      ? "text-sky-500"
       : variant === "danger"
-      ? "text-red-500"
+      ? "text-rose-500"
       : "text-white";
 
+  const className = `p-3 items-center ${color}`;
+
   return (
-    <TouchableOpacity
-      className={`p-3 items-center ${color}`}
-      disabled={disabled}
-      {...props}
-    >
+    <TouchableOpacity className={className} disabled={disabled} {...props}>
       <Text className={`text-base ${textColor}`}>
         {isLoading ? "Loading..." : title}
       </Text>

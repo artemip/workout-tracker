@@ -23,10 +23,12 @@ function WorkoutExerciseProvider({
   useErrorLogger(error);
 
   const workoutExercisesById = useMemo(() => {
-    return workoutExercises?.reduce((acc, curr) => {
-      acc[curr.id] = curr;
-      return acc;
-    }, {} as WorkoutExercises);
+    return (
+      workoutExercises?.reduce((acc, curr) => {
+        acc[curr.id] = curr;
+        return acc;
+      }, {} as WorkoutExercises) ?? {}
+    );
   }, [workoutExercises]);
 
   return (
