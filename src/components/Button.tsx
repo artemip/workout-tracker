@@ -18,8 +18,8 @@ export default function Button({
     variant === "secondary" || variant === "danger"
       ? ""
       : variant === "success"
-      ? `bg-teal-${colorWeight}`
-      : `bg-sky-${colorWeight}`;
+      ? `bg-green-${colorWeight}`
+      : `bg-blue-${colorWeight}`;
 
   const textColor =
     variant === "secondary"

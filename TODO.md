@@ -10,7 +10,7 @@ V0
   [x] local cache
   [x] to backend when done
 [x] Exercise history
-[] Send to iPhone
+[x] Send to iPhone
 [] Show exercise "type" (eg barbell)
 
 V1
@@ -25,6 +25,7 @@ V2
 V3
 - Offline support
 - Links to exercise tutorials/materials
+[] HealthKit
 
 Misc.
 [] Loading indicators
