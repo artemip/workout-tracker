@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Vibration, Platform } from "react-native";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
 
 interface Props {
   timeSeconds: number;
@@ -12,41 +14,67 @@ const formatTime = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-function vibrate() {
-  const interval = setInterval(() => {
-    Vibration.vibrate([0, 500, 200, 500]);
-    console.debug("Vibrating...");
-  }, 1000);
-  setTimeout(() => clearInterval(interval), 5000);
+async function schedulePushNotification(numSeconds: number) {
+  return await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Rest time is over",
+      body: "Move on to the next set",
+      vibrate: [0, 250, 250, 250],
+    },
+    trigger: { seconds: numSeconds },
+  });
 }
 
 export default function Timer({ timeSeconds }: Props) {
-  const [seconds, setSeconds] = useState(timeSeconds);
-  const [isActive, setIsActive] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const [timerStartTime, setTimerStartTime] = useState(0);
   const intervalRef = useRef<number>(0);
+  const notificationRef = useRef<string | undefined>();
 
   useEffect(() => {
-    if (isActive && seconds > 0) {
-      intervalRef.current = setInterval(() => {
-        setSeconds((prevSeconds) => prevSeconds - 1);
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      vibrate();
+    setTimerStartTime(Date.now());
+  }, [timeSeconds]);
+
+  useEffect(() => {
+    async function startTimer() {
+      if (timerStartTime && timeSeconds && !intervalRef.current) {
+        notificationRef.current = await schedulePushNotification(timeSeconds);
+        setSecondsRemaining(getSecondsRemaining());
+
+        intervalRef.current = setInterval(() => {
+          setSecondsRemaining(getSecondsRemaining());
+        }, 1000);
+      }
     }
 
-    return () => clearInterval(intervalRef.current);
-  }, [isActive, seconds]);
+    startTimer();
+    return () => {
+      clearInterval(intervalRef.current);
+      notificationRef.current &&
+        Notifications.cancelScheduledNotificationAsync(notificationRef.current);
+
+      intervalRef.current = 0;
+    };
+  }, [timerStartTime]);
 
   useEffect(() => {
-    setSeconds(timeSeconds);
-    setIsActive(true);
-  }, [timeSeconds]);
+    if (secondsRemaining === 0) {
+      intervalRef.current && clearInterval(intervalRef.current);
+      notificationRef.current &&
+        Notifications.cancelScheduledNotificationAsync(notificationRef.current);
+      Vibration.vibrate([0, 250, 250, 250]);
+    }
+  }, [secondsRemaining]);
+
+  function getSecondsRemaining() {
+    const secondsElapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+    return timeSeconds - secondsElapsed;
+  }
 
   return (
     <View className="flex-1 flex-col justify-center items-center">
       <Text className="text-5xl font-bold">
-        {timeSeconds > 0 ? formatTime(seconds) : "--"}
+        {timeSeconds > 0 ? formatTime(secondsRemaining) : "--"}
       </Text>
       <Text className="text-m">Rest Remaining</Text>
       {/* <TouchableOpacity

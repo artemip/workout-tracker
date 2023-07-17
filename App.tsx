@@ -14,6 +14,19 @@ import WorkoutExerciseScreen, {
 import { request } from "./src/api/request-handler";
 import { WorkoutExerciseProvider } from "./src/context/WorkoutExerciseContext";
 import ExerciseLogScreen from "./src/screens/ExerciseLogScreen";
+import * as Notifications from "expo-notifications";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Platform } from "react-native";
+import * as Device from "expo-device";
+import { Subscription } from "expo-modules-core";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export type StackParams = {
   Home: undefined;
@@ -32,7 +45,61 @@ export type StackParams = {
 
 const Stack = createNativeStackNavigator<StackParams>();
 
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      Alert.alert("Failed to get push token for push notification!");
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    Alert.alert("Must use physical device for Push Notifications");
+  }
+
+  return token;
+}
+
 export default function App() {
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [notification, setNotification] = useState<
+    Notifications.Notification | undefined
+  >(undefined);
+  const notificationListener = useRef<Subscription | undefined>();
+  const responseListener = useRef<Subscription | undefined>();
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((token) =>
+      setExpoPushToken(token ?? "")
+    );
+
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        setNotification(notification);
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(response);
+      });
+
+    return () => {
+      Notifications.removeNotificationSubscription(
+        notificationListener.current!
+      );
+      Notifications.removeNotificationSubscription(responseListener.current!);
+    };
+  }, []);
+
   return (
     <SWRConfig
       value={{

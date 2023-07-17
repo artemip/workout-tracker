@@ -6,27 +6,41 @@ interface Props extends TouchableOpacityProps {
   isLoading?: boolean;
 }
 
+const VARIANTS = {
+  primary: {
+    enabled: "bg-sky-500",
+    disabled: "bg-sky-200",
+    text: "text-white",
+  },
+  secondary: {
+    enabled: "text-sky-500",
+    disabled: "text-sky-200",
+    text: "",
+  },
+  success: {
+    enabled: "bg-teal-500",
+    disabled: "bg-teal-200",
+    text: "text-white",
+  },
+  danger: {
+    enabled: "bg-rose-500",
+    disabled: "bg-rose-200",
+    text: "text-white",
+  },
+};
+
 export default function Button({
   title,
-  variant,
   isLoading,
   disabled,
+  variant = "primary",
   ...props
 }: Props) {
-  const colorWeight = disabled ? "200" : "500";
-  const color =
-    variant === "secondary" || variant === "danger"
-      ? ""
-      : variant === "success"
-      ? `bg-teal-${colorWeight}`
-      : `bg-sky-${colorWeight}`;
+  const color = disabled
+    ? VARIANTS[variant].disabled
+    : VARIANTS[variant].enabled;
 
-  const textColor =
-    variant === "secondary"
-      ? "text-sky-500"
-      : variant === "danger"
-      ? "text-rose-500"
-      : "text-white";
+  const textColor = VARIANTS[variant].text;
 
   const className = `p-3 items-center ${color}`;
 
