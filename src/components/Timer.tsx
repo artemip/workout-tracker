@@ -19,6 +19,8 @@ async function schedulePushNotification(numSeconds: number) {
     content: {
       title: "Rest time is over",
       body: "Move on to the next set",
+      autoDismiss: true,
+      sound: true,
       vibrate: [0, 250, 250, 250],
     },
     trigger: { seconds: numSeconds },
@@ -26,7 +28,7 @@ async function schedulePushNotification(numSeconds: number) {
 }
 
 export default function Timer({ timeSeconds }: Props) {
-  const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const [ticks, setTicks] = useState(0);
   const [timerStartTime, setTimerStartTime] = useState(0);
   const intervalRef = useRef<number>(0);
   const notificationRef = useRef<string | undefined>();
@@ -39,10 +41,10 @@ export default function Timer({ timeSeconds }: Props) {
     async function startTimer() {
       if (timerStartTime && timeSeconds && !intervalRef.current) {
         notificationRef.current = await schedulePushNotification(timeSeconds);
-        setSecondsRemaining(getSecondsRemaining());
+        setTicks((prev) => prev + 1);
 
         intervalRef.current = setInterval(() => {
-          setSecondsRemaining(getSecondsRemaining());
+          setTicks((prev) => prev + 1);
         }, 1000);
       }
     }
@@ -57,24 +59,15 @@ export default function Timer({ timeSeconds }: Props) {
     };
   }, [timerStartTime]);
 
-  useEffect(() => {
-    if (secondsRemaining === 0) {
-      intervalRef.current && clearInterval(intervalRef.current);
-      notificationRef.current &&
-        Notifications.cancelScheduledNotificationAsync(notificationRef.current);
-      Vibration.vibrate([0, 250, 250, 250]);
-    }
-  }, [secondsRemaining]);
-
   function getSecondsRemaining() {
     const secondsElapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-    return timeSeconds - secondsElapsed;
+    return Math.max(0, timeSeconds - secondsElapsed);
   }
 
   return (
     <View className="flex-1 flex-col justify-center items-center">
-      <Text className="text-5xl font-bold">
-        {timeSeconds > 0 ? formatTime(secondsRemaining) : "--"}
+      <Text key={ticks.toString()} className="text-5xl font-bold">
+        {timeSeconds > 0 ? formatTime(getSecondsRemaining()) : "--"}
       </Text>
       <Text className="text-m">Rest Remaining</Text>
       {/* <TouchableOpacity

@@ -10,6 +10,7 @@ import { ExerciseLog, Workout, WorkoutExercise } from "../types/types";
 import Button from "../components/Button";
 import { ExerciseSet } from "./WorkoutExerciseScreen";
 import { request } from "../api/request-handler";
+import useWarnOnNavigation from "../hooks/useWarnOnNavigation";
 
 type Props = NativeStackScreenProps<StackParams, "Workout">;
 
@@ -24,6 +25,11 @@ export default function WorkoutScreen({ route, navigation }: Props) {
     CompletedWorkoutExercise[]
   >([]);
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
+
+  useWarnOnNavigation(
+    "Are you sure you want to leave this workout? Your progress will not be saved.",
+    navigation
+  );
 
   const { workout, completedExercise } = route.params;
 
