@@ -26,11 +26,6 @@ export default function WorkoutScreen({ route, navigation }: Props) {
   >([]);
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
 
-  useWarnOnNavigation(
-    "Are you sure you want to leave this workout? Your progress will not be saved.",
-    navigation
-  );
-
   const { workout, completedExercise } = route.params;
 
   const exercises = useExercises();

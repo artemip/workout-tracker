@@ -30,7 +30,7 @@ async function schedulePushNotification(numSeconds: number) {
 export default function Timer({ timeSeconds }: Props) {
   const [ticks, setTicks] = useState(0);
   const [timerStartTime, setTimerStartTime] = useState(0);
-  const intervalRef = useRef<number>(0);
+  const intervalRef = useRef<NodeJS.Timer | null>(null);
   const notificationRef = useRef<string | undefined>();
 
   useEffect(() => {
@@ -51,11 +51,11 @@ export default function Timer({ timeSeconds }: Props) {
 
     startTimer();
     return () => {
-      clearInterval(intervalRef.current);
+      intervalRef.current && clearInterval(intervalRef.current);
       notificationRef.current &&
         Notifications.cancelScheduledNotificationAsync(notificationRef.current);
 
-      intervalRef.current = 0;
+      intervalRef.current = null;
     };
   }, [timerStartTime]);
 

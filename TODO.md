@@ -5,13 +5,13 @@ V0
 [x] Show reps per exercise
 [x] Adjust workout/set weight (+ update UI)
 [x] Auto-advance to next exercise
-[] Timer + alerts
+[x] Timer + alerts
 [x] Persist completed workouts/exercises
   [x] local cache
   [x] to backend when done
 [x] Exercise history
 [x] Send to iPhone
-[] Show exercise "type" (eg barbell)
+[x] Show exercise "type" (eg barbell)
 
 V1
 - Watch app
