@@ -3,7 +3,7 @@ export default {
     name: "Workout Tracker",
     slug: "workout-tracker",
     owner: "artemp",
-    version: "1.0.1",
+    version: "1.0.2",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -18,7 +18,6 @@ export default {
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: false,
-      bundleIdentifier: "com.artem-pasyechnyk.workout-tracker",
     },
     android: {
       adaptiveIcon: {

@@ -36,20 +36,6 @@ export default function Home({ navigation }: Props) {
 
   const isLoading = !workouts || !exerciseLogs;
 
-  const workoutsByCycle = useMemo(() => {
-    return (
-      workouts?.reduce((acc, curr) => {
-        const { meso_cycle } = curr;
-        if (!acc[meso_cycle]) {
-          acc[meso_cycle] = [];
-        }
-        acc[meso_cycle].push(curr);
-        acc[meso_cycle] = acc[meso_cycle].sort((a, b) => a.order - b.order);
-        return acc;
-      }, {} as Record<string, Workout[]>) ?? {}
-    );
-  }, [workouts]);
-
   const workoutExercises = useWorkoutExercises();
 
   const sortedLogs = useMemo(() => {
@@ -84,13 +70,58 @@ export default function Home({ navigation }: Props) {
     }
   }, [errorWorkouts, errorExerciseLogs]);
 
+  const sortedWorkouts = useMemo(() => {
+    return workouts?.sort((a, b) => a.order - b.order) ?? [];
+  }, [workouts]);
+
+  const completedWorkouts = useMemo(() => {
+    return sortedWorkouts?.filter((w) =>
+      sortedLogs.some(
+        (l) => workoutExercises[l.workout_exercise_id]?.workout_id === w.id
+      )
+    );
+  }, [sortedLogs, workoutExercises]);
+
+  const incompleteWorkouts = useMemo(() => {
+    return sortedWorkouts?.filter(
+      (w) =>
+        !sortedLogs.some(
+          (l) => workoutExercises[l.workout_exercise_id]?.workout_id === w.id
+        )
+    );
+  }, [completedWorkouts, sortedWorkouts]);
+
+  function WorkoutRow(workout: Workout) {
+    const lastLog = sortedLogs.find(
+      (e) => workoutExercises[e.workout_exercise_id]?.workout_id === workout.id
+    );
+    return (
+      <Row
+        key={workout.id}
+        onPress={() => goToWorkout(workout)}
+        icon="chevrons-right"
+      >
+        <View>
+          <Text className="text-lg">{`Day ${workout.order} - ${workout.name}`}</Text>
+          <Text className="text-xs">
+            Last completed:{" "}
+            {lastLog
+              ? new Date(lastLog.created_at!).toLocaleDateString()
+              : "Never"}
+          </Text>
+        </View>
+      </Row>
+    );
+  }
+
   return (
-    <View className="flex-1 bg-slate-50 p-4 flex-col">
+    <View className="flex-1 bg-slate-50 flex-col">
       {nextWorkout && (
-        <View className="pb-8">
-          <Text className="text-2xl mb-2">Next Workout:</Text>
-          <Text className="text-xl mb-8">
-            {nextWorkout?.name} (Meso Cycle {nextWorkout?.meso_cycle})
+        <View className="pb-4 bg-slate-100 pt-10 px-4">
+          <Text className="text-slate-500 text-2xl mb-2">Next Workout</Text>
+          <Text className="text-slate-900 font-semibold text-lg mb-8">
+            {nextWorkout?.name} (Day {nextWorkout?.order}, Meso Cycle{" "}
+            {nextWorkout?.meso_cycle})
           </Text>
           <Button
             title="Start Workout"
@@ -98,45 +129,25 @@ export default function Home({ navigation }: Props) {
           />
         </View>
       )}
-      <ScrollView className="flex-1 gap-8 mt-0">
+      <ScrollView className="flex-1 mt- bg-slate-200 px-4 pt-2 border-t-slate-300 border-t-2">
         {isLoading && (
           <ActivityIndicator size="large" color={colors.blue[400]} />
         )}
-        {Object.keys(workoutsByCycle).map((cycle) => {
-          return (
-            <View key={cycle}>
-              <View className="border-b-2 border-slate-600 pb-2">
-                <Text className="text-xl">Meso Cycle {cycle}</Text>
-              </View>
-              {workoutsByCycle[cycle].map((workout, idx) => {
-                const lastLog = sortedLogs.find(
-                  (e) =>
-                    workoutExercises[e.workout_exercise_id]?.workout_id ===
-                    workout.id
-                );
-                return (
-                  <Row
-                    key={workout.id}
-                    onPress={() => goToWorkout(workout)}
-                    icon="chevrons-right"
-                  >
-                    <View>
-                      <Text className="text-lg">{`#${idx + 1} - ${
-                        workout.name
-                      }`}</Text>
-                      <Text className="text-xs">
-                        Last completed:{" "}
-                        {lastLog
-                          ? new Date(lastLog.created_at!).toLocaleDateString()
-                          : "Never"}
-                      </Text>
-                    </View>
-                  </Row>
-                );
-              })}
-            </View>
-          );
-        })}
+        {sortedWorkouts?.length === 0 && (
+          <Text className="text-xl">No workouts found.</Text>
+        )}
+        <Text className="text-lg font-semibold">Upcoming workouts</Text>
+        {incompleteWorkouts?.length > 0 &&
+          incompleteWorkouts.map((workout) => (
+            <WorkoutRow key={workout.id} {...workout} />
+          ))}
+        <Text className="text-lg font-semibold pt-4 border-t-slate-500 border-t-2">
+          Completed workouts
+        </Text>
+        {completedWorkouts?.length > 0 &&
+          completedWorkouts.map((workout) => (
+            <WorkoutRow key={workout.id} {...workout} />
+          ))}
       </ScrollView>
     </View>
   );

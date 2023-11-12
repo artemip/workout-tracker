@@ -7,6 +7,7 @@ import Timer from "../components/Timer";
 import { useExercises } from "../context/ExerciseContext";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
+import { Workout } from "../types/types";
 
 type Props = NativeStackScreenProps<StackParams, "WorkoutExercise">;
 
@@ -141,7 +142,7 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
   const isComplete = currentSet > workoutExercise.num_sets;
 
   return (
-    <View className="flex-1 p-4 mb-8">
+    <View className="flex-1 p-4 mb-4">
       <View className="border-b-2 border-slate-300 pb-2">
         <Text className="text-2xl">
           {exercise?.name ?? "Unknown Exercise"}{" "}
@@ -159,7 +160,7 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
         />
       </View>
       <Text className="text-lg pt-2">Progress</Text>
-      <ScrollView className="">
+      <ScrollView>
         {sets.map((set, idx) => {
           const isCurrentSet = set.num === currentSet;
           const skipped = set.weight === 0;

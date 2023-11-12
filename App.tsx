@@ -114,7 +114,11 @@ export default function App() {
           <NavigationContainer>
             <Stack.Navigator>
               <Stack.Group>
-                <Stack.Screen name="Home" component={Home} />
+                <Stack.Screen
+                  name="Home"
+                  component={Home}
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen name="Workout" component={WorkoutScreen} />
                 <Stack.Screen
                   name="WorkoutExercise"

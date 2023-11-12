@@ -105,6 +105,9 @@ export default function WorkoutScreen({ route, navigation }: Props) {
         <Text className="text-2xl">{workout.name}</Text>
       </View>
       <ScrollView>
+        {sortedByOrder?.length === 0 && (
+          <Text className="text-lg mt-2">No exercises in this workout.</Text>
+        )}
         {sortedByOrder?.map((we) => {
           const exercise = exercises[we.exercise_id];
           const isCompleted = completedWorkoutExercises.find(
@@ -121,8 +124,8 @@ export default function WorkoutScreen({ route, navigation }: Props) {
                   {exercise?.name ?? "Unknown Exercise"}
                 </Text>
                 <Text className="text-xs">
-                  {we.weight > 0 ? `${we.weight} lbs` : "BW"} x {we.num_sets} x{" "}
-                  {we.num_reps_per_set}
+                  {we.weight > 0 ? `${we.weight} lbs` : "BW"} x{" "}
+                  {we.num_reps_per_set} reps x {we.num_sets} sets
                 </Text>
               </View>
             </Row>
@@ -134,7 +137,9 @@ export default function WorkoutScreen({ route, navigation }: Props) {
         onPress={saveWorkout}
         variant="success"
         isLoading={isSavingWorkout}
-        disabled={completedWorkoutExercises.length === 0}
+        disabled={
+          completedWorkoutExercises.length === 0 && !!sortedByOrder?.length
+        }
       />
     </View>
   );
