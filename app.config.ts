@@ -18,12 +18,14 @@ export default {
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: false,
+      bundleIdentifier: "com.artemp.workouttracker",
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#FFFFFF",
       },
+      package: "com.artemp.workouttracker",
     },
     web: {
       favicon: "./assets/favicon.png",

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -116,39 +117,48 @@ export default function Home({ navigation }: Props) {
 
   return (
     <View className="flex-1 bg-slate-50 flex-col">
-      {nextWorkout && (
-        <View className="pb-4 bg-slate-100 pt-10 px-4">
-          <Text className="text-slate-500 text-2xl mb-2">Next Workout</Text>
-          <Text className="text-slate-900 font-semibold text-lg mb-8">
-            {nextWorkout?.name} (Day {nextWorkout?.order}, Meso Cycle{" "}
-            {nextWorkout?.meso_cycle})
-          </Text>
-          <Button
-            title="Start Workout"
-            onPress={() => goToWorkout(nextWorkout)}
-          />
-        </View>
-      )}
-      <ScrollView className="flex-1 mt- bg-slate-200 px-4 pt-2 border-t-slate-300 border-t-2">
-        {isLoading && (
+      {isLoading ? (
+        <View className="flex-col flex-1 align-center justify-center">
           <ActivityIndicator size="large" color={colors.blue[400]} />
-        )}
-        {sortedWorkouts?.length === 0 && (
-          <Text className="text-xl">No workouts found.</Text>
-        )}
-        <Text className="text-lg font-semibold">Upcoming workouts</Text>
-        {incompleteWorkouts?.length > 0 &&
-          incompleteWorkouts.map((workout) => (
-            <WorkoutRow key={workout.id} {...workout} />
-          ))}
-        <Text className="text-lg font-semibold pt-4 border-t-slate-500 border-t-2">
-          Completed workouts
-        </Text>
-        {completedWorkouts?.length > 0 &&
-          completedWorkouts.map((workout) => (
-            <WorkoutRow key={workout.id} {...workout} />
-          ))}
-      </ScrollView>
+        </View>
+      ) : (
+        <>
+          {nextWorkout && (
+            <View className="pb-4 bg-slate-50 pt-4 px-4 border-b-slate-300 border-b-2 drop-shadow-2xl">
+              <SafeAreaView>
+                <Text className="text-slate-500 text-2xl mb-2">
+                  Next Workout
+                </Text>
+              </SafeAreaView>
+              <Text className="text-slate-900 font-semibold text-lg mb-8">
+                {nextWorkout?.name} (Day {nextWorkout?.order}, Meso Cycle{" "}
+                {nextWorkout?.meso_cycle})
+              </Text>
+              <Button
+                title="Start Workout"
+                onPress={() => goToWorkout(nextWorkout)}
+              />
+            </View>
+          )}
+          <ScrollView className="flex-1 pb-4 bg-slate-200 px-4 pt-2">
+            {sortedWorkouts?.length === 0 && (
+              <Text className="text-xl">No workouts found.</Text>
+            )}
+            <Text className="text-lg font-semibold">Upcoming workouts</Text>
+            {incompleteWorkouts?.length > 0 &&
+              incompleteWorkouts.map((workout) => (
+                <WorkoutRow key={workout.id} {...workout} />
+              ))}
+            <Text className="text-lg font-semibold pt-4 border-t-slate-500 border-t-2">
+              Completed workouts
+            </Text>
+            {completedWorkouts?.length > 0 &&
+              completedWorkouts.map((workout) => (
+                <WorkoutRow key={workout.id} {...workout} />
+              ))}
+          </ScrollView>
+        </>
+      )}
     </View>
   );
 }
