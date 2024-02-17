@@ -1,6 +1,6 @@
 export default {
   expo: {
-    name: "Workout Tracker",
+    name: "Artem's Workout Tracker",
     slug: "workout-tracker",
     owner: "artemp",
     version: "1.0.2",
