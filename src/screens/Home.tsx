@@ -10,8 +10,9 @@ import {
   View,
 } from "react-native";
 import colors from "tailwindcss/colors";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { Urls } from "../api/urls";
+import { request } from "../api/request-handler";
 import {
   Exercise,
   ExerciseLog,
@@ -54,9 +55,25 @@ export default function Home({ navigation }: Props) {
       w.id === workoutExercises[sortedLogs[0]?.workout_exercise_id]?.workout_id
   );
 
-  const nextWorkout = lastWorkout
-    ? workouts?.find((w) => w.order === lastWorkout.order + 1)
-    : undefined;
+  // Determine next workout based on last completed workout
+  const nextWorkout = useMemo(() => {
+    if (!workouts || workouts.length === 0) return undefined;
+
+    // If no logs exist, start from Day 1 (lowest order)
+    if (!lastWorkout || sortedLogs.length === 0) {
+      return sortedWorkouts[0]; // First workout by order
+    }
+
+    // Try to find the next workout (last_order + 1)
+    const next = workouts.find((w) => w.order === lastWorkout.order + 1);
+
+    // If no next workout exists (completed program), wrap back to Day 1
+    if (!next) {
+      return sortedWorkouts[0];
+    }
+
+    return next;
+  }, [lastWorkout, workouts, sortedLogs, sortedWorkouts]);
 
   function goToWorkout(workout: Workout) {
     navigation.navigate("Workout", { workout });

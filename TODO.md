@@ -14,8 +14,11 @@ V0
 [x] Show exercise "type" (eg barbell)
 
 V1
-- Watch app
-- Plate math
+[x] 1. Allow user to restart from Day 0. Every next Day should be derived from what Day was last worked out.
+[] 2. Visual refresh
+[] 3. Option to visualize/calculate "plate math" (for barbell exercises)
+[] 4. Basic watch app to view cooldown timer, current exercise info, and ability to move on to next set. Everything you need to not need the phone after starting your workout.
+[] 5. Update Watch App w/ Healthkit integration to track workout stats + time automatically
 
 V2
 - Basic analytics
@@ -25,7 +28,6 @@ V2
 V3
 - Offline support
 - Links to exercise tutorials/materials
-[] HealthKit
 
 Misc.
 [] Loading indicators
