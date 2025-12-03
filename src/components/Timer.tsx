@@ -23,14 +23,17 @@ async function schedulePushNotification(numSeconds: number) {
       sound: true,
       vibrate: [0, 250, 250, 250],
     },
-    trigger: { seconds: numSeconds },
+    trigger: {
+      seconds: numSeconds,
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+    },
   });
 }
 
 export default function Timer({ timeSeconds }: Props) {
   const [ticks, setTicks] = useState(0);
   const [timerStartTime, setTimerStartTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timer | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const notificationRef = useRef<string | undefined>();
 
   useEffect(() => {

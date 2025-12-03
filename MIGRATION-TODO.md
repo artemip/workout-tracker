@@ -137,23 +137,60 @@ Major upgrade - requires careful testing.
 
 ---
 
-## Phase 7: React Navigation 7 (High Risk) ⚠️
+## Phase 7: React Navigation 7 (High Risk) ✅ DONE
 Major version with breaking changes.
 
 **Prerequisites:**
 - Review [React Navigation 7 upgrade guide](https://reactnavigation.org/docs/upgrading-from-6.x)
 
 **Changes:**
-- [ ] @react-navigation/native: 6.x → 7.x
-- [ ] @react-navigation/native-stack: 6.x → 7.x
+- [x] @react-navigation/native: 6.x → 7.x (7.1.24)
+- [x] @react-navigation/native-stack: 6.x → 7.x (7.8.5)
+
+**Notes:**
+- No breaking changes affected this codebase (uses basic navigation patterns)
+- Navigation APIs used (NavigationContainer, createNativeStackNavigator, NativeStackScreenProps) remain compatible
+- Regenerated Android native files with `npx expo prebuild --platform android --clean`
+
+**Post-update:**
+- [x] Clean and rebuild iOS: `cd ios && rm -rf Pods Podfile.lock && pod install`
+- [x] Clean Android: Regenerated via expo prebuild
 
 ---
 
-## Phase 8: Other Major Updates (Future)
-Consider these after core is stable:
+## Phase 8: NativeWind 4 Migration ✅ DONE
+Major upgrade with significant configuration changes.
 
-- [ ] nativewind: 2.x → 4.x (major API changes)
-- [ ] tailwindcss: 3.x → 4.x (major changes)
+**Changes:**
+- [x] nativewind: 2.x → 4.x (4.2.1)
+- [x] Added react-native-reanimated: 3.16.7 (required by NativeWind 4)
+- [x] Added react-native-css-interop: 0.2.1 (auto-installed dependency)
+- [x] TailwindCSS remains at 3.x (NativeWind 4 requires TailwindCSS >3.3.0, not 4.x)
+
+**Configuration changes:**
+- Updated `metro.config.js` to use `withNativeWind` wrapper
+- Updated `babel.config.js` with nativewind preset and reanimated plugin
+- Created `global.css` with Tailwind directives
+- Updated `tailwind.config.js` with nativewind preset
+- Created `nativewind-env.d.ts` for proper TypeScript types
+- Updated `tsconfig.json` to include type declarations
+- Added `import "./global.css"` to App.tsx
+
+**Additional fixes:**
+- Fixed Subscription import from expo-notifications
+- Fixed Timer.tsx notification trigger types
+- Fixed Timer.tsx interval ref type
+
+**Post-update:**
+- [x] Clean and rebuild iOS: `cd ios && rm -rf Pods Podfile.lock && pod install`
+- [x] Clean Android: Regenerated via expo prebuild
+
+---
+
+## Phase 9: Future Updates
+Consider these for future upgrades:
+
+- [ ] TailwindCSS: 3.x → 4.x (when NativeWind supports it)
 - [ ] React 19 (when Expo supports it)
 
 ---

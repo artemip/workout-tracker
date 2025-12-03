@@ -1,3 +1,4 @@
+import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -18,7 +19,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Platform } from "react-native";
 import * as Device from "expo-device";
-import { Subscription } from "expo-modules-core";
+import type { Subscription } from "expo-notifications";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
