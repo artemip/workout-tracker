@@ -34,9 +34,9 @@ export default {
       eas: {
         projectId: "6790c0cb-f41f-47a7-990c-56f27c1e2672",
       },
-      apiUrl: "sdiwsniatofmjtssguiw.supabase.co",
+      apiUrl: "rsagdlcddicrwlmjwrpw.supabase.co",
       apiKey:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkaXdzbmlhdG9mbWp0c3NndWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc2ODgzNDgsImV4cCI6MTk4MzI2NDM0OH0.Ca6zyeLxQcZBC1ymi6iHuIUaqBOHcXu-BZYWV7JYnQ4",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWdkbGNkZGljcndsbWp3cnB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MjY2MTMsImV4cCI6MjA4MDMwMjYxM30.8CQs-brmgGRNt50bOVwVU-9jpHuSav16TU_p3RlgOFQ",
     },
   },
 };
