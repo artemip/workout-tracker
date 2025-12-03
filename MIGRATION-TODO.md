@@ -106,14 +106,34 @@ Major upgrade - requires careful testing.
 
 ---
 
-## Phase 6: Expo SDK 52 Migration (High Risk) ⚠️
+## Phase 6: Expo SDK 52 Migration (High Risk) ✅ DONE
 **Prerequisites:**
 - Review [Expo SDK 52 changelog](https://expo.dev/changelog/2024/11-12-sdk-52)
 
 **Changes:**
-- [ ] expo: 51 → 52
-- [ ] React Native: 0.74 → 0.76
-- [ ] New Architecture becomes default (can opt-out if issues)
+- [x] expo: 51 → 52 (52.0.47)
+- [x] React Native: 0.74 → 0.76 (0.76.9)
+- [x] React: 18.2.0 → 18.3.1
+- [x] expo-device, expo-haptics, expo-notifications, etc. (auto-updated)
+
+**Additional fixes applied:**
+- Updated iOS deployment target to 15.1 (required for RN 0.76)
+- Updated Android Gradle Plugin to 8.6.0 (required for RN 0.76)
+- Updated Gradle to 8.10.2
+- Updated compileSdkVersion/targetSdkVersion to 35
+- Updated minSdkVersion to 24 (required for RN 0.76)
+- Updated NDK to 27.1.12297006
+- Updated Kotlin to 1.9.24
+- Updated build tools to 35.0.0
+- Removed deprecated `get_default_flags()` from Podfile
+- Removed deprecated `REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS` flag
+- Deleted obsolete expo-device patch (fix now included in 7.0.3)
+- Added @react-native-community/cli packages for native module linking
+- Ran `npx expo prebuild --platform android --clean` to regenerate Android native files
+
+**Post-update:**
+- [x] Clean and rebuild iOS: `cd ios && rm -rf Pods Podfile.lock && pod install`
+- [x] Clean Android: `cd android && ./gradlew clean`
 
 ---
 
