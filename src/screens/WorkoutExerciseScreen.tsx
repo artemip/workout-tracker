@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Text,
   TextInput,
@@ -13,6 +13,12 @@ import { useExercises } from "../context/ExerciseContext";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
 import SetIndicator from "../components/SetIndicator";
+import PlateMathButton from "../components/PlateMath";
+import {
+  CurrentExerciseProgress,
+  saveWorkoutProgress,
+  loadWorkoutProgress,
+} from "../utils/workoutStorage";
 
 type Props = NativeStackScreenProps<StackParams, "WorkoutExercise">;
 
@@ -84,35 +90,69 @@ function EditSetModal({ set, onEdit, onClose, onSkip }: EditSetProps) {
 }
 
 export default function WorkoutExerciseScreen({ route, navigation }: Props) {
-  const { workoutExercise, completedExercise } = route.params;
-
-  const [currentSet, setCurrentSet] = useState(
-    completedExercise ? completedExercise.sets.length + 1 : 1
-  );
-  const [restTimerReset, setRestTimerReset] = useState(0);
-  const [editedSetIdx, setEditedSetIdx] = useState<number>(-1);
+  const { workoutExercise, completedExercise, savedProgress } = route.params;
 
   const exercises = useExercises();
   const exercise = exercises[workoutExercise.exercise_id];
+  const hasInitialized = useRef(false);
 
-  const [sets, setSets] = useState<ExerciseSet[]>(
-    completedExercise
-      ? completedExercise.sets
-      : Array.from({ length: workoutExercise.num_sets }, (_, i) => i + 1).map(
-          (num) => ({
-            num,
-            weight: workoutExercise.weight,
-            isDropSet:
-              num === workoutExercise.num_sets &&
-              workoutExercise.end_with_drop_set,
-            repsCompleted: workoutExercise.num_reps_per_set,
-          })
-        )
-  );
+  // Initialize state from savedProgress > completedExercise > fresh start
+  const initialSets =
+    savedProgress?.sets ??
+    completedExercise?.sets ??
+    Array.from({ length: workoutExercise.num_sets }, (_, i) => i + 1).map(
+      (num) => ({
+        num,
+        weight: workoutExercise.weight,
+        isDropSet:
+          num === workoutExercise.num_sets && workoutExercise.end_with_drop_set,
+        repsCompleted: workoutExercise.num_reps_per_set,
+      })
+    );
+
+  const initialSet =
+    savedProgress?.currentSet ??
+    (completedExercise ? completedExercise.sets.length + 1 : 1);
+
+  const initialRestTimerReset = savedProgress?.restTimerReset ?? 0;
+
+  const [currentSet, setCurrentSet] = useState(initialSet);
+  const [restTimerReset, setRestTimerReset] = useState(initialRestTimerReset);
+  const [editedSetIdx, setEditedSetIdx] = useState<number>(-1);
+  const [sets, setSets] = useState<ExerciseSet[]>(initialSets);
 
   const currentSetData = sets[currentSet - 1];
   const completedSetsCount = currentSet - 1;
   const isComplete = currentSet > workoutExercise.num_sets;
+
+  // Save current exercise state to AsyncStorage whenever it changes
+  useEffect(() => {
+    // Skip first render to avoid overwriting on mount
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      return;
+    }
+
+    async function saveCurrentExercise() {
+      const existingProgress = await loadWorkoutProgress();
+      if (!existingProgress) return;
+
+      const currentExercise: CurrentExerciseProgress = {
+        workoutExerciseId: workoutExercise.id,
+        exerciseId: exercise?.id ?? 0,
+        currentSet,
+        sets,
+        restTimerReset,
+      };
+
+      await saveWorkoutProgress({
+        ...existingProgress,
+        currentExercise,
+      });
+    }
+
+    saveCurrentExercise();
+  }, [currentSet, sets, restTimerReset, workoutExercise.id, exercise?.id]);
 
   function completeSet() {
     setCurrentSet((set) => set + 1);
@@ -124,7 +164,16 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
     }
   }
 
-  function completeExercise() {
+  async function completeExercise() {
+    // Clear current exercise from storage since it's now completed
+    const existingProgress = await loadWorkoutProgress();
+    if (existingProgress) {
+      await saveWorkoutProgress({
+        ...existingProgress,
+        currentExercise: undefined,
+      });
+    }
+
     return navigation.navigate("Workout", {
       workout: workoutExercise.workout,
       completedExercise: {
@@ -231,13 +280,24 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
 
         {/* Actions */}
         <View className="pb-4 space-y-2">
-          <TouchableOpacity
-            onPress={goToExerciseLogs}
-            className="py-3 items-center"
-            activeOpacity={0.6}
-          >
-            <Text className="text-base text-gray-500">View History</Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center justify-center">
+            <TouchableOpacity
+              onPress={goToExerciseLogs}
+              className="py-3 px-4"
+              activeOpacity={0.6}
+            >
+              <Text className="text-base text-gray-500">View History</Text>
+            </TouchableOpacity>
+            {exercise?.type?.toLowerCase() === "barbell" &&
+              currentSetData?.weight > 0 && (
+                <>
+                  <Text className="text-gray-300">|</Text>
+                  <View className="px-4">
+                    <PlateMathButton weight={currentSetData.weight} />
+                  </View>
+                </>
+              )}
+          </View>
           {isComplete ? (
             <Button
               title="Complete Exercise"

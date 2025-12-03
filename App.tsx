@@ -9,9 +9,8 @@ import WorkoutScreen, {
 } from "./src/screens/WorkoutScreen";
 import { Exercise, Workout, WorkoutExercise } from "./src/types/types";
 import { ExerciseProvider } from "./src/context/ExerciseContext";
-import WorkoutExerciseScreen, {
-  ExerciseSet,
-} from "./src/screens/WorkoutExerciseScreen";
+import WorkoutExerciseScreen from "./src/screens/WorkoutExerciseScreen";
+import { CurrentExerciseProgress } from "./src/utils/workoutStorage";
 import { request } from "./src/api/request-handler";
 import { WorkoutExerciseProvider } from "./src/context/WorkoutExerciseContext";
 import ExerciseLogScreen from "./src/screens/ExerciseLogScreen";
@@ -38,6 +37,7 @@ export type StackParams = {
   WorkoutExercise: {
     workoutExercise: WorkoutExercise;
     completedExercise?: CompletedWorkoutExercise;
+    savedProgress?: CurrentExerciseProgress;
   };
   ExerciseLog: {
     exercise: Exercise;

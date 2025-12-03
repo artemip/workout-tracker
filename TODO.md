@@ -15,9 +15,9 @@ V0
 
 V1
 [x] 1. Allow user to restart from Day 0. Every next Day should be derived from what Day was last worked out.
-[] 2. Visual refresh
-[] 2.5 Local save in case app is closed/crashes so you dont lose progress on a workout
-[] 3. Option to visualize/calculate "plate math" (for barbell exercises)
+[x] 2. Visual refresh
+[x] 2.5 Local save in case app is closed/crashes so you dont lose progress on a workout
+[x] 3. Option to visualize/calculate "plate math" (for barbell exercises)
 [] 4. Basic watch app to view cooldown timer, current exercise info, and ability to move on to next set. Everything you need to not need the phone after starting your workout.
 [] 5. Update Watch App w/ Healthkit integration to track workout stats + time automatically
 

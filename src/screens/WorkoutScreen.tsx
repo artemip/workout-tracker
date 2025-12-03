@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, ScrollView, Text, View, SafeAreaView } from "react-native";
 import useSWR, { mutate } from "swr";
 import { StackParams } from "../../App";
@@ -10,6 +11,13 @@ import { ExerciseLog, WorkoutExercise } from "../types/types";
 import Button from "../components/Button";
 import { ExerciseSet } from "./WorkoutExerciseScreen";
 import { request } from "../api/request-handler";
+import {
+  saveWorkoutProgress,
+  loadWorkoutProgress,
+  clearWorkoutProgress,
+  WorkoutProgress,
+  CurrentExerciseProgress,
+} from "../utils/workoutStorage";
 
 type Props = NativeStackScreenProps<StackParams, "Workout">;
 
@@ -19,11 +27,18 @@ export interface CompletedWorkoutExercise {
   sets: ExerciseSet[];
 }
 
+// Track if we've shown the resume prompt this session (persists across re-renders)
+let hasShownResumePrompt = false;
+
 export default function WorkoutScreen({ route, navigation }: Props) {
   const [completedWorkoutExercises, setCompletedWorkoutExercises] = useState<
     CompletedWorkoutExercise[]
   >([]);
+  const [currentExerciseProgress, setCurrentExerciseProgress] = useState<
+    CurrentExerciseProgress | undefined
+  >(undefined);
   const [isSavingWorkout, setIsSavingWorkout] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { workout, completedExercise } = route.params;
 
@@ -37,20 +52,135 @@ export default function WorkoutScreen({ route, navigation }: Props) {
     errorWorkouts && Alert.alert("Error", errorWorkouts.message);
   }, [errorWorkouts]);
 
+  // Load saved progress on initial mount only
+  useEffect(() => {
+    async function initializeProgress() {
+      const savedProgress = await loadWorkoutProgress();
+
+      if (
+        savedProgress &&
+        savedProgress.workoutId === workout.id &&
+        !hasShownResumePrompt
+      ) {
+        const hasCompletedExercises =
+          savedProgress.completedExercises.length > 0;
+        const hasCurrentExercise = !!savedProgress.currentExercise;
+
+        if (hasCompletedExercises || hasCurrentExercise) {
+          hasShownResumePrompt = true;
+          Alert.alert(
+            "Resume Workout?",
+            `You have progress saved from a previous session. Would you like to continue?`,
+            [
+              {
+                text: "Start Fresh",
+                style: "destructive",
+                onPress: async () => {
+                  await clearWorkoutProgress();
+                  // Also initialize fresh storage for this workout
+                  await saveWorkoutProgress({
+                    workoutId: workout.id,
+                    completedExercises: [],
+                    startedAt: new Date().toISOString(),
+                  });
+                  setIsInitialized(true);
+                },
+              },
+              {
+                text: "Resume",
+                onPress: () => {
+                  setCompletedWorkoutExercises(
+                    savedProgress.completedExercises
+                  );
+                  setCurrentExerciseProgress(savedProgress.currentExercise);
+                  setIsInitialized(true);
+                },
+              },
+            ]
+          );
+          return;
+        }
+      }
+
+      // No saved progress or different workout - initialize fresh
+      if (!savedProgress || savedProgress.workoutId !== workout.id) {
+        await saveWorkoutProgress({
+          workoutId: workout.id,
+          completedExercises: [],
+          startedAt: new Date().toISOString(),
+        });
+      }
+      setIsInitialized(true);
+    }
+
+    initializeProgress();
+  }, [workout.id]);
+
+  // Reload current exercise progress when screen gains focus (coming back from exercise)
+  useFocusEffect(
+    useCallback(() => {
+      if (!isInitialized) return;
+
+      async function reloadCurrentExercise() {
+        const savedProgress = await loadWorkoutProgress();
+        if (savedProgress && savedProgress.workoutId === workout.id) {
+          setCurrentExerciseProgress(savedProgress.currentExercise);
+        }
+      }
+      reloadCurrentExercise();
+    }, [workout.id, isInitialized])
+  );
+
+  // Handle completed exercise coming back from WorkoutExerciseScreen
   useEffect(() => {
     if (completedExercise) {
       setCompletedWorkoutExercises((prev) => {
+        const existing = prev.findIndex((x) => x.id === completedExercise.id);
+        if (existing >= 0) {
+          const updated = [...prev];
+          updated[existing] = completedExercise;
+          return updated;
+        }
         return [...prev, completedExercise];
       });
+      // Clear current exercise progress since it's now completed
+      setCurrentExerciseProgress(undefined);
     }
   }, [completedExercise]);
 
-  function goToWorkoutExercise(workoutExercise: WorkoutExercise) {
+  // Save completed exercises whenever they change
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    async function saveCompletedExercises() {
+      const existingProgress = await loadWorkoutProgress();
+      if (existingProgress && existingProgress.workoutId === workout.id) {
+        await saveWorkoutProgress({
+          ...existingProgress,
+          completedExercises: completedWorkoutExercises,
+        });
+      }
+    }
+    saveCompletedExercises();
+  }, [completedWorkoutExercises, workout.id, isInitialized]);
+
+  async function goToWorkoutExercise(workoutExercise: WorkoutExercise) {
+    // Load latest progress from storage
+    const savedProgress = await loadWorkoutProgress();
+    const currentExercise =
+      savedProgress?.currentExercise?.workoutExerciseId === workoutExercise.id
+        ? savedProgress.currentExercise
+        : undefined;
+
+    // Check if already completed
+    const completed = completedWorkoutExercises.find(
+      (x) => x.id === workoutExercise.id
+    );
+
     navigation.navigate("WorkoutExercise", {
       workoutExercise: { ...workoutExercise, workout },
-      completedExercise: completedWorkoutExercises
-        .reverse()
-        .find((x) => x.id === workoutExercise.id),
+      completedExercise: completed,
+      savedProgress: currentExercise,
     });
   }
 
@@ -75,6 +205,11 @@ export default function WorkoutScreen({ route, navigation }: Props) {
       );
 
       mutate(Urls.EXERCISE_LOGS);
+
+      // Clear saved progress after successful save
+      await clearWorkoutProgress();
+      // Reset the prompt flag so next workout can show it
+      hasShownResumePrompt = false;
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {
@@ -130,6 +265,8 @@ export default function WorkoutScreen({ route, navigation }: Props) {
             const isCompleted = completedWorkoutExercises.find(
               (x) => x.id === we.id
             );
+            const isInProgress =
+              currentExerciseProgress?.workoutExerciseId === we.id;
             return (
               <Row
                 key={we.id}
@@ -138,13 +275,22 @@ export default function WorkoutScreen({ route, navigation }: Props) {
                 completed={!!isCompleted}
               >
                 <View>
-                  <Text
-                    className={`text-base ${
-                      isCompleted ? "text-gray-500" : "text-gray-900"
-                    }`}
-                  >
-                    {exercise?.name ?? "Unknown Exercise"}
-                  </Text>
+                  <View className="flex-row items-center">
+                    <Text
+                      className={`text-base ${
+                        isCompleted ? "text-gray-500" : "text-gray-900"
+                      }`}
+                    >
+                      {exercise?.name ?? "Unknown Exercise"}
+                    </Text>
+                    {isInProgress && !isCompleted && (
+                      <View className="ml-2 bg-blue-100 px-2 py-0.5 rounded">
+                        <Text className="text-xs text-blue-700">
+                          In Progress
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Text className="text-sm text-gray-500">
                     {we.num_sets} sets · {we.num_reps_per_set} reps ·{" "}
                     {we.weight > 0 ? `${we.weight} lbs` : "Bodyweight"}
