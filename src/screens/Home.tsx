@@ -50,6 +50,10 @@ export default function Home({ navigation }: Props) {
     );
   }, [exerciseLogs]);
 
+  const sortedWorkouts = useMemo(() => {
+    return workouts?.sort((a, b) => a.order - b.order) ?? [];
+  }, [workouts]);
+
   const lastWorkout = workouts?.find(
     (w) =>
       w.id === workoutExercises[sortedLogs[0]?.workout_exercise_id]?.workout_id
@@ -87,10 +91,6 @@ export default function Home({ navigation }: Props) {
       );
     }
   }, [errorWorkouts, errorExerciseLogs]);
-
-  const sortedWorkouts = useMemo(() => {
-    return workouts?.sort((a, b) => a.order - b.order) ?? [];
-  }, [workouts]);
 
   const completedWorkouts = useMemo(() => {
     return sortedWorkouts?.filter((w) =>
