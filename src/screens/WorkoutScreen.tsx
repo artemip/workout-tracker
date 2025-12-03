@@ -1,16 +1,15 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View, SafeAreaView } from "react-native";
 import useSWR, { mutate } from "swr";
 import { StackParams } from "../../App";
 import { Urls } from "../api/urls";
 import Row from "../components/Row";
 import { useExercises } from "../context/ExerciseContext";
-import { ExerciseLog, Workout, WorkoutExercise } from "../types/types";
+import { ExerciseLog, WorkoutExercise } from "../types/types";
 import Button from "../components/Button";
 import { ExerciseSet } from "./WorkoutExerciseScreen";
 import { request } from "../api/request-handler";
-import useWarnOnNavigation from "../hooks/useWarnOnNavigation";
 
 type Props = NativeStackScreenProps<StackParams, "Workout">;
 
@@ -59,7 +58,7 @@ export default function WorkoutScreen({ route, navigation }: Props) {
     setIsSavingWorkout(true);
 
     try {
-      const result = await request<ExerciseLog[], ExerciseLog[]>(
+      await request<ExerciseLog[], ExerciseLog[]>(
         Urls.EXERCISE_LOGS,
         "POST",
         completedWorkoutExercises
@@ -99,48 +98,78 @@ export default function WorkoutScreen({ route, navigation }: Props) {
     });
   }, [workoutExercises]);
 
+  const totalExercises = sortedByOrder?.length ?? 0;
+  const completedCount = completedWorkoutExercises.length;
+
   return (
-    <View className="flex-1 p-4 mb-4">
-      <View className="border-b-2 border-slate-500 pb-2">
-        <Text className="text-2xl">{workout.name}</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1">
+        {/* Header */}
+        <View className="border-b border-gray-200 px-4 py-4">
+          <View className="flex-row items-baseline justify-between">
+            <Text className="text-2xl font-semibold text-gray-900">
+              {workout.name}
+            </Text>
+            {totalExercises > 0 && (
+              <Text className="text-base text-gray-500">
+                {completedCount} of {totalExercises}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Exercise List */}
+        <ScrollView className="flex-1 px-4">
+          {sortedByOrder?.length === 0 && (
+            <Text className="text-base text-gray-500 py-4">
+              No exercises in this workout.
+            </Text>
+          )}
+          {sortedByOrder?.map((we) => {
+            const exercise = exercises[we.exercise_id];
+            const isCompleted = completedWorkoutExercises.find(
+              (x) => x.id === we.id
+            );
+            return (
+              <Row
+                key={we.id}
+                onPress={() => goToWorkoutExercise(we)}
+                icon={isCompleted ? "check" : "chevron-right"}
+                completed={!!isCompleted}
+              >
+                <View>
+                  <Text
+                    className={`text-base ${
+                      isCompleted ? "text-gray-500" : "text-gray-900"
+                    }`}
+                  >
+                    {exercise?.name ?? "Unknown Exercise"}
+                  </Text>
+                  <Text className="text-sm text-gray-500">
+                    {we.num_sets} sets · {we.num_reps_per_set} reps ·{" "}
+                    {we.weight > 0 ? `${we.weight} lbs` : "Bodyweight"}
+                  </Text>
+                </View>
+              </Row>
+            );
+          })}
+        </ScrollView>
+
+        {/* Save Button */}
+        <View className="px-4 pb-4 pt-2 border-t border-gray-200">
+          <Button
+            title={
+              completedCount > 0
+                ? `Save Workout (${completedCount})`
+                : "Save Workout"
+            }
+            onPress={saveWorkout}
+            variant="success"
+            isLoading={isSavingWorkout}
+            disabled={completedCount === 0}
+          />
+        </View>
       </View>
-      <ScrollView>
-        {sortedByOrder?.length === 0 && (
-          <Text className="text-lg mt-2">No exercises in this workout.</Text>
-        )}
-        {sortedByOrder?.map((we) => {
-          const exercise = exercises[we.exercise_id];
-          const isCompleted = completedWorkoutExercises.find(
-            (x) => x.id === we.id
-          );
-          return (
-            <Row
-              key={we.id}
-              onPress={() => goToWorkoutExercise(we)}
-              icon={isCompleted ? "check-circle" : "chevrons-right"}
-            >
-              <View>
-                <Text className="text-lg">
-                  {exercise?.name ?? "Unknown Exercise"}
-                </Text>
-                <Text className="text-xs">
-                  {we.weight > 0 ? `${we.weight} lbs` : "BW"} x{" "}
-                  {we.num_reps_per_set} reps x {we.num_sets} sets
-                </Text>
-              </View>
-            </Row>
-          );
-        })}
-      </ScrollView>
-      <Button
-        title="Save Workout"
-        onPress={saveWorkout}
-        variant="success"
-        isLoading={isSavingWorkout}
-        disabled={
-          completedWorkoutExercises.length === 0 && !!sortedByOrder?.length
-        }
-      />
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,13 +1,18 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  SafeAreaView,
+} from "react-native";
 import { StackParams } from "../../App";
-import Row from "../components/Row";
 import Timer from "../components/Timer";
 import { useExercises } from "../context/ExerciseContext";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
-import { Workout } from "../types/types";
+import SetIndicator from "../components/SetIndicator";
 
 type Props = NativeStackScreenProps<StackParams, "WorkoutExercise">;
 
@@ -22,50 +27,58 @@ interface EditSetProps {
   set: ExerciseSet;
   onEdit: (set: ExerciseSet) => void;
   onClose: () => void;
+  onSkip: () => void;
 }
 
-function EditSetModal({ set, onEdit, onClose }: EditSetProps) {
-  const [editedSet, setEditedSet] = useState<ExerciseSet>({ ...set });
+function EditSetModal({ set, onEdit, onClose, onSkip }: EditSetProps) {
+  const [weight, setWeight] = useState(set.weight.toString());
+  const [reps, setReps] = useState(set.repsCompleted.toString());
 
-  function updateWeight(newWeight: number) {
-    setEditedSet((prev) => ({ ...prev, weight: newWeight }));
-  }
-
-  function updateNumRepsCompleted(newNumRepsCompleted: number) {
-    setEditedSet((prev) => ({ ...prev, repsCompleted: newNumRepsCompleted }));
-  }
-
-  function onEditSet() {
-    onEdit(editedSet);
-  }
-
-  function skipSet() {
-    onEdit({ ...set, weight: 0 });
+  function onSave() {
+    onEdit({
+      ...set,
+      weight: parseInt(weight) || set.weight,
+      repsCompleted: parseInt(reps) || set.repsCompleted,
+    });
   }
 
   return (
     <Modal
       title={`Edit Set ${set.num}`}
-      buttonText="Edit"
+      buttonText="Save"
       onClose={onClose}
-      onConfirm={onEditSet}
+      onConfirm={onSave}
       isVisible
     >
-      <Text className="text-lg mt-4">Updated Weight</Text>
-      <TextInput
-        placeholder={`${set.weight.toString()} lbs`}
-        keyboardType="number-pad"
-        className="border-b-2 py-2 border-gray-400 text-3xl mb-4"
-        onChangeText={(text) => updateWeight(parseInt(text))}
-      />
-      <Text className="text-lg mt-4">Reps Completed</Text>
-      <TextInput
-        placeholder={`${set.repsCompleted.toString()}`}
-        keyboardType="number-pad"
-        className="border-b-2 py-2 border-gray-400 text-3xl mb-4"
-        onChangeText={(text) => updateNumRepsCompleted(parseInt(text))}
-      />
-      <Button title="Skip Set" onPress={skipSet} variant="danger" />
+      <View className="space-y-6">
+        <View>
+          <Text className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
+            Weight
+          </Text>
+          <TextInput
+            value={weight}
+            keyboardType="number-pad"
+            className="border-b-2 border-gray-300 py-3 text-2xl text-gray-900 focus:border-blue-500"
+            onChangeText={setWeight}
+            selectTextOnFocus
+          />
+        </View>
+        <View>
+          <Text className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
+            Reps
+          </Text>
+          <TextInput
+            value={reps}
+            keyboardType="number-pad"
+            className="border-b-2 border-gray-300 py-3 text-2xl text-gray-900 focus:border-blue-500"
+            onChangeText={setReps}
+            selectTextOnFocus
+          />
+        </View>
+        <TouchableOpacity onPress={onSkip} className="py-2">
+          <Text className="text-center text-gray-500">Skip this set</Text>
+        </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
@@ -97,6 +110,10 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
         )
   );
 
+  const currentSetData = sets[currentSet - 1];
+  const completedSetsCount = currentSet - 1;
+  const isComplete = currentSet > workoutExercise.num_sets;
+
   function completeSet() {
     setCurrentSet((set) => set + 1);
 
@@ -125,98 +142,122 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
   function onEditSet(set: ExerciseSet) {
     setSets((sets) => {
       const newSets = [...sets];
-
       const idx = newSets.findIndex((s) => s.num === set.num);
       newSets[idx] = set;
-
       return newSets;
     });
-
     closeEditSet();
+  }
+
+  function onSkipSet() {
+    if (editedSetIdx > -1) {
+      const set = sets[editedSetIdx];
+      onEditSet({ ...set, weight: 0, repsCompleted: 0 });
+    }
   }
 
   function closeEditSet() {
     setEditedSetIdx(-1);
   }
 
-  const isComplete = currentSet > workoutExercise.num_sets;
-
   return (
-    <View className="flex-1 p-4 mb-4">
-      <View className="border-b-2 border-slate-300 pb-2">
-        <Text className="text-2xl">
-          {exercise?.name ?? "Unknown Exercise"}{" "}
-          <Text className="text-sm">
-            {`(${workoutExercise.num_sets} Sets x ${workoutExercise.num_reps_per_set} Reps)`}
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 px-4">
+        {/* Header - Exercise name and target */}
+        <View className="border-b border-gray-200 py-4">
+          <Text className="text-2xl font-semibold text-gray-900">
+            {exercise?.name ?? "Unknown Exercise"}
           </Text>
-        </Text>
-      </View>
-      <View className="flex-1 border-b-2 border-slate-300 pb-2">
+          <Text className="text-sm text-gray-500 mt-1">
+            {workoutExercise.num_sets} sets · {workoutExercise.num_reps_per_set}{" "}
+            reps ·{" "}
+            {workoutExercise.weight > 0
+              ? `${workoutExercise.weight} lbs`
+              : "Bodyweight"}
+          </Text>
+        </View>
+
+        {/* Timer - only shows when active */}
         <Timer
           key={restTimerReset}
           timeSeconds={
             restTimerReset > 0 ? workoutExercise.rest_time_seconds : 0
           }
         />
+
+        {/* Main content - Set display */}
+        <View className="flex-1 justify-center items-center">
+          {isComplete ? (
+            <View className="items-center">
+              <Text className="text-sm font-semibold uppercase tracking-wide text-emerald-600 mb-2">
+                Complete
+              </Text>
+              <Text className="text-5xl font-bold text-gray-900">
+                All sets done
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setEditedSetIdx(currentSet - 1)}
+              activeOpacity={0.7}
+              className="items-center"
+            >
+              <Text className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                Set {currentSet} of {workoutExercise.num_sets}
+              </Text>
+              <Text className="text-5xl font-bold text-gray-900">
+                {currentSetData?.isDropSet
+                  ? "Drop Set"
+                  : `${currentSetData?.weight} lbs`}
+              </Text>
+              {!currentSetData?.isDropSet && (
+                <Text className="text-2xl text-gray-500 mt-2">
+                  × {currentSetData?.repsCompleted} reps
+                </Text>
+              )}
+              <Text className="text-sm text-gray-400 mt-4">Tap to edit</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Set indicators */}
+        <View className="py-6">
+          <SetIndicator
+            totalSets={workoutExercise.num_sets}
+            currentSet={currentSet}
+            completedSets={completedSetsCount}
+          />
+        </View>
+
+        {/* Actions */}
+        <View className="pb-4 space-y-2">
+          <TouchableOpacity
+            onPress={goToExerciseLogs}
+            className="py-3 items-center"
+            activeOpacity={0.6}
+          >
+            <Text className="text-base text-gray-500">View History</Text>
+          </TouchableOpacity>
+          {isComplete ? (
+            <Button
+              title="Complete Exercise"
+              onPress={completeExercise}
+              variant="success"
+            />
+          ) : (
+            <Button title="Complete Set" onPress={completeSet} />
+          )}
+        </View>
       </View>
-      <Text className="text-lg pt-2">Progress</Text>
-      <ScrollView>
-        {sets.map((set, idx) => {
-          const isCurrentSet = set.num === currentSet;
-          const skipped = set.weight === 0;
-          const icon = skipped
-            ? "x-circle"
-            : set.num < currentSet
-            ? "check-circle"
-            : "circle";
-          return (
-            <Row key={set.num} icon={icon} onPress={() => setEditedSetIdx(idx)}>
-              <View className="flex-row items-baseline">
-                {skipped ? (
-                  <Text className="text-lg text-gray-500">Skipped</Text>
-                ) : (
-                  <>
-                    <Text
-                      className={`text-lg ${isCurrentSet ? "font-bold" : ""}`}
-                    >
-                      {set.isDropSet
-                        ? "Drop Set"
-                        : `${set.weight} lbs x ${set.repsCompleted}`}
-                    </Text>
-                    <Text className="text-sm text-gray-500 ml-2">
-                      {workoutExercise.weight !== set.weight
-                        ? `(${workoutExercise.weight} lbs x ${workoutExercise.num_reps_per_set})`
-                        : ""}
-                    </Text>
-                  </>
-                )}
-              </View>
-            </Row>
-          );
-        })}
-      </ScrollView>
-      <Button
-        title="View Logs"
-        variant="secondary"
-        onPress={goToExerciseLogs}
-      />
-      <View className="mb-2" />
-      {isComplete ? (
-        <Button
-          title="Complete Exercise"
-          onPress={completeExercise}
-          variant="success"
-        />
-      ) : (
-        <Button title={`Complete Set ${currentSet}`} onPress={completeSet} />
-      )}
-      {editedSetIdx > -1 ? (
+
+      {editedSetIdx > -1 && (
         <EditSetModal
           set={sets[editedSetIdx]}
           onClose={closeEditSet}
           onEdit={onEditSet}
+          onSkip={onSkipSet}
         />
-      ) : undefined}
-    </View>
+      )}
+    </SafeAreaView>
   );
 }
