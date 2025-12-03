@@ -27,17 +27,13 @@ These have already been applied:
 
 ---
 
-## Phase 2: Expo SDK 49 Patch Update (Low Risk)
+## Phase 2: Expo SDK 49 Patch Update (Low Risk) ✅ DONE
 Update Expo to latest patch within SDK 49.
 
-- [ ] expo: 49.0.6 → 49.0.23
-- [ ] Run `npx expo install` to fix any peer dependency issues
-
-**Command:**
-```bash
-npx expo install expo@49.0.23
-npx expo install --fix
-```
+- [x] expo: 49.0.6 → 49.0.23
+- [x] react-native: 0.72.3 → 0.72.10 (auto-fixed by expo)
+- [x] Run `npx expo install --fix` to fix peer dependency issues
+- [x] Reinstall iOS pods
 
 **Test:** `yarn ios` or `yarn android`
 
