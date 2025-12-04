@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Text,
   TextInput,
@@ -19,6 +19,8 @@ import {
   saveWorkoutProgress,
   loadWorkoutProgress,
 } from "../utils/workoutStorage";
+import { useWatchConnectivity } from "../hooks/useWatchConnectivity";
+import { WatchSetCompletedEvent } from "../native/WatchConnectivity";
 
 type Props = NativeStackScreenProps<StackParams, "WorkoutExercise">;
 
@@ -95,6 +97,7 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
   const exercises = useExercises();
   const exercise = exercises[workoutExercise.exercise_id];
   const hasInitialized = useRef(false);
+  const timerStartedAt = useRef<number | undefined>(undefined);
 
   // Initialize state from savedProgress > completedExercise > fresh start
   const initialSets =
@@ -124,6 +127,66 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
   const currentSetData = sets[currentSet - 1];
   const completedSetsCount = currentSet - 1;
   const isComplete = currentSet > workoutExercise.num_sets;
+
+  // Handle set completed from Watch
+  const handleWatchSetCompleted = useCallback(
+    (event: WatchSetCompletedEvent) => {
+      // Update the current set with Watch values
+      setSets((prevSets) => {
+        const newSets = [...prevSets];
+        const idx = currentSet - 1;
+        if (idx >= 0 && idx < newSets.length) {
+          newSets[idx] = {
+            ...newSets[idx],
+            weight: event.weight,
+            repsCompleted: event.repsCompleted,
+          };
+        }
+        return newSets;
+      });
+
+      // Complete the set
+      setCurrentSet((set) => set + 1);
+
+      if (currentSet < workoutExercise.num_sets) {
+        timerStartedAt.current = Date.now();
+        setRestTimerReset((reset) => reset + 1);
+      } else {
+        timerStartedAt.current = undefined;
+        setRestTimerReset(0);
+      }
+    },
+    [currentSet, workoutExercise.num_sets]
+  );
+
+  // Watch connectivity
+  const { sendWorkoutState } = useWatchConnectivity({
+    onSetCompleted: handleWatchSetCompleted,
+  });
+
+  // Sync workout state to Watch
+  useEffect(() => {
+    if (!exercise || isComplete) return;
+
+    sendWorkoutState({
+      exerciseName: exercise.name,
+      exerciseType: exercise.type ?? undefined,
+      currentSet,
+      totalSets: workoutExercise.num_sets,
+      weight: currentSetData?.weight ?? 0,
+      targetReps:
+        currentSetData?.repsCompleted ?? workoutExercise.num_reps_per_set,
+      restTimeSeconds: workoutExercise.rest_time_seconds,
+      timerStartedAt: timerStartedAt.current,
+    });
+  }, [
+    exercise,
+    currentSet,
+    currentSetData,
+    workoutExercise,
+    isComplete,
+    sendWorkoutState,
+  ]);
 
   // Save current exercise state to AsyncStorage whenever it changes
   useEffect(() => {
@@ -158,8 +221,10 @@ export default function WorkoutExerciseScreen({ route, navigation }: Props) {
     setCurrentSet((set) => set + 1);
 
     if (currentSet < workoutExercise.num_sets) {
+      timerStartedAt.current = Date.now();
       setRestTimerReset((reset) => reset + 1);
     } else {
+      timerStartedAt.current = undefined;
       setRestTimerReset(0);
     }
   }

@@ -18,6 +18,7 @@ import {
   WorkoutProgress,
   CurrentExerciseProgress,
 } from "../utils/workoutStorage";
+import { useWatchConnectivity } from "../hooks/useWatchConnectivity";
 
 type Props = NativeStackScreenProps<StackParams, "Workout">;
 
@@ -43,6 +44,9 @@ export default function WorkoutScreen({ route, navigation }: Props) {
   const { workout, completedExercise } = route.params;
 
   const exercises = useExercises();
+
+  // Watch connectivity for workout lifecycle
+  const { notifyWorkoutStarted, notifyWorkoutEnded } = useWatchConnectivity();
 
   const { data: workoutExercises, error: errorWorkouts } = useSWR<
     WorkoutExercise[]
@@ -115,6 +119,20 @@ export default function WorkoutScreen({ route, navigation }: Props) {
 
     initializeProgress();
   }, [workout.id]);
+
+  // Notify Watch when workout starts
+  useEffect(() => {
+    if (isInitialized) {
+      notifyWorkoutStarted({
+        exerciseName: workout.name,
+        currentSet: 1,
+        totalSets: 1,
+        weight: 0,
+        targetReps: 0,
+        restTimeSeconds: 0,
+      });
+    }
+  }, [isInitialized, workout.name, notifyWorkoutStarted]);
 
   // Reload current exercise progress when screen gains focus (coming back from exercise)
   useFocusEffect(
@@ -210,6 +228,9 @@ export default function WorkoutScreen({ route, navigation }: Props) {
       await clearWorkoutProgress();
       // Reset the prompt flag so next workout can show it
       hasShownResumePrompt = false;
+
+      // Notify Watch that workout is complete
+      notifyWorkoutEnded();
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {
