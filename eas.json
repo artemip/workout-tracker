@@ -1,10 +1,12 @@
 {
   "cli": {
     "version": ">= 3.8.1",
-    "promptToConfigurePushNotifications": false
+    "promptToConfigurePushNotifications": false,
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
+      "autoIncrement": true,
       "distribution": "internal",
       "android": {
         "gradleCommand": ":app:assembleDebug"
@@ -21,6 +23,7 @@
       }
     },
     "preview": {
+      "autoIncrement": true,
       "distribution": "internal",
       "ios": {
         "resourceClass": "m-medium"
@@ -32,6 +35,7 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "ios": {
         "resourceClass": "m-medium"
       },
